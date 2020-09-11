@@ -11,14 +11,23 @@ def auth():
 
 @auth.command()
 def health():
-    """Auth health systems status"""
+    """Auth health systems status:
+
+    curl --request GET --url https://api.3vidence.com/auth/health
+    """
     url=vars.eHost+'/auth/health'
     response=common.sendingGet(url)
     print(json.dumps(response["content"],indent=2))
 
 @auth.command()
 def login():
-    """3vidence login"""
+    """
+    3vidence login:
+
+    curl --request POST --url https://api.3vidence.com/auth/login
+    --header 'content-type: application/json'
+    --data '{"email": "YOUR_EMAIL" ,"password": "YOUR_PASSWORD"}'
+    """
     url=vars.eHost+'/auth/login'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)

@@ -11,14 +11,21 @@ def htsp():
 
 @htsp.command()
 def health():
-    """HTSP health systems status"""
+    """HTSP health systems status:
+
+    curl --request GET --url https://api.3vidence.com/htsp/health
+    """
     url=vars.eHost+'/htsp/health'
     response=common.sendingGet(url)
     print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 def listKeys():
-    """List API keys"""
+    """List API keys:
+
+    curl --request GET --url https://api.3vidence.com//htsp/info
+    --header 'authorization: YOUR_JWT'
+    """
     url=vars.eHost+'/htsp/info'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
@@ -33,7 +40,12 @@ def listKeys():
 @click.option('-d','--desc', default="0545 cli", help='Description')
 @click.option('-c','--cloud', default=True, help='Store signature on cloud')
 def htsq(file_sign,key_name,hash,desc,cloud):
-    """HTSQ sign a file"""
+    """HTSQ sign a file:
+
+    curl --request POST --url https://api.3vidence.com/htsp/htsq
+    --header 'content-type: application/json'
+    --data '{ "api_key": "YOUR_APIKEY", "algorithm":"YOUR_ALG_HASH","hash":"YOUR_HASH", "cloud": BOOL, "desc": "YOUR_DESCRIPTION"}'
+    """
     url=vars.eHost+'/htsp/htsq'
     file_hash = hashlib.sha256()
     while True:
