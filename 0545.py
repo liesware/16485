@@ -2,6 +2,7 @@
 
 from auth import *
 from htsp import *
+from snippets import *
 
 @click.group()
 def cli():
@@ -9,6 +10,7 @@ def cli():
 
 cli.add_command(auth)
 cli.add_command(htsp)
+cli.add_command(snippets)
 
 if __name__ == '__main__':
     cli()

@@ -4,16 +4,22 @@ import hashlib
 
 import vars
 import common
+import auth_curls
 
 @click.group()
 def auth():
     pass
 
 @auth.command()
-def health():
-    """Auth health systems status:
+def curls():
+    """Auth curls
+    """
+    auth_curls.api()
 
-    curl --request GET --url https://api.3vidence.com/auth/health
+
+@auth.command()
+def health():
+    """Health systems status
     """
     url=vars.eHost+'/auth/health'
     response=common.sendingGet(url)
@@ -22,11 +28,7 @@ def health():
 @auth.command()
 def login():
     """
-    3vidence login:
-
-    curl --request POST --url https://api.3vidence.com/auth/login
-    --header 'content-type: application/json'
-    --data '{"email": "YOUR_EMAIL" ,"password": "YOUR_PASSWORD"}'
+    3vidence login
     """
     url=vars.eHost+'/auth/login'
     with open(vars.fileConf) as json_file:
