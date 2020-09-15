@@ -27,7 +27,6 @@ def apikey_upd(key_name):
         message = {"api_key": conf_data[key_name]}
         headers={"Authorization":conf_data["jwt"]}
         response=common.sendingPut(url,message,headers)
-        # print(json.dumps(response["content"],indent=2))
         conf_data[key_name]= response["content"]["api_key"]
         with open(vars.fileConf, 'w') as outfile:
             json.dump(conf_data, outfile,indent=2)
@@ -47,7 +46,6 @@ def health():
 def hjws(id_hjws):
     """Get a cloud id_hjws
     """
-    # int(id_hjws,16)
     url=vars.eHost+'/htsp/hjws/'+id_hjws
     response=common.sendingGet(url)
     print(json.dumps(response["content"],indent=2))
