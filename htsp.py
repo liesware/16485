@@ -16,6 +16,23 @@ def curls():
     """
     htsp_curls.api()
 
+@htsp.command()
+@click.argument('key_name')
+def apikey_upd(key_name):
+    """Update API KEY password
+    """
+    url=vars.eHost+'/htsp/apikey'
+    with open(vars.fileConf) as json_file:
+        conf_data = json.load(json_file)
+        message = {"api_key": conf_data[key_name]}
+        headers={"Authorization":conf_data["jwt"]}
+        response=common.sendingPut(url,message,headers)
+        # print(json.dumps(response["content"],indent=2))
+        conf_data[key_name]= response["content"]["api_key"]
+        with open(vars.fileConf, 'w') as outfile:
+            json.dump(conf_data, outfile,indent=2)
+        print("API updated OK!")
+
 
 @htsp.command()
 def health():
@@ -58,16 +75,14 @@ def htsq(file_sign,key_name,hash,desc,cloud):
     """Sign a file
     """
     url=vars.eHost+'/htsp/htsq'
-    file_hash = hashlib.sha256()
-    while True:
-        fb = file_sign.read(vars.BLOCK_SIZE)
-        if not fb:
-            break
-        file_hash.update(fb.encode('utf-8'))
+    file_hash = common.hashCreate(hash,file_sign)
+    if(file_hash==0):
+        print("Bad algorithm")
+        return
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
         message = {"api_key": conf_data[key_name], "algorithm": hash,
-            "hash":file_hash.hexdigest(), "cloud": cloud,"desc": desc}
+            "hash":file_hash, "cloud": cloud,"desc": desc}
         response=common.sendingPost(url,message)
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))
@@ -79,17 +94,15 @@ def htsq(file_sign,key_name,hash,desc,cloud):
 @htsp.command()
 @click.argument('file_sign', type=click.File('r'))
 @click.option('-h','--hash', default="sha256", help='Hash algorithm')
-def htsq_a(file_sign,hash):
+def htsq_anon(file_sign,hash):
     """Sign a file anonymously
     """
     url=vars.eHost+'/htsp/open/htsq'
-    file_hash = hashlib.sha256()
-    while True:
-        fb = file_sign.read(vars.BLOCK_SIZE)
-        if not fb:
-            break
-        file_hash.update(fb.encode('utf-8'))
-    message = {"algorithm": hash,"hash":file_hash.hexdigest()}
+    file_hash = common.hashCreate(hash,file_sign)
+    if(file_hash==0):
+        print("Bad algorithm")
+        return
+    message = {"algorithm": hash,"hash":file_hash}
     response=common.sendingPost(url,message)
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
@@ -110,22 +123,19 @@ def htsr(file_sign):
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))
             return
-        file_hash = hashlib.sha256()
-        while True:
-            fb = file_sign.read(vars.BLOCK_SIZE)
-            if not fb:
-                break
-            file_hash.update(fb.encode('utf-8'))
-            if file_hash.hexdigest() != response["content"]["hash"]:
-                print("Bad file sign")
-            else:
-                print(json.dumps(response["content"],indent=2))
-
+        file_hash = common.hashCreate(response["content"]["alg"],file_sign)
+        if(file_hash==0):
+            print("Bad algorithm")
+            return
+        if file_hash != response["content"]["hash"]:
+            print("Bad file sign")
+        else:
+            print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 @click.argument('file_sign', type=click.File('r'))
 @click.argument('id_hjws')
-def htsr_c(file_sign,id_hjws):
+def htsr_cloud(file_sign,id_hjws):
     """Verify a file with a cloud id_hjws
     """
     url=vars.eHost+'/htsp/hjws/'+id_hjws
@@ -133,16 +143,14 @@ def htsr_c(file_sign,id_hjws):
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
         return
-    file_hash = hashlib.sha256()
-    while True:
-        fb = file_sign.read(vars.BLOCK_SIZE)
-        if not fb:
-            break
-        file_hash.update(fb.encode('utf-8'))
-        if file_hash.hexdigest() != response["content"]["hash"]:
-            print("Bad file sign")
-        else:
-            print(json.dumps(response["content"],indent=2))
+    file_hash = common.hashCreate(response["content"]["alg"],file_sign)
+    if(file_hash==0):
+        print("Bad algorithm")
+        return
+    if file_hash != response["content"]["hash"]:
+        print("Bad file sign")
+    else:
+        print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 def info():
@@ -154,6 +162,39 @@ def info():
         headers={"Authorization":conf_data["jwt"]}
         response=common.sendingGet(url,headers)
         print(json.dumps(response["content"],indent=2))
+
+@htsp.command()
+def init():
+    """Init account
+    """
+    url=vars.eHost+'/htsp/subject'
+    with open(vars.fileConf) as json_file:
+        conf_data = json.load(json_file)
+        message = {"subject": conf_data["email"],"type":"email"}
+        headers={"Authorization":conf_data["jwt"]}
+        response=common.sendingPost(url,message,headers)
+        if response["status_code"] != 200:
+            print("Subject already exists")
+            return
+        conf_data["subject"]= response["content"]
+        code = input("Your email verification code: ")
+        url=vars.eHost+'/htsp/verification/'+code
+        response=common.sendingGet(url,headers)
+        if response["status_code"] != 200:
+            print("Bad Verification code")
+            return
+        url=vars.eHost+'/htsp/branch'
+        branch = input("Your branch name: ")
+        message = {"id_sec": conf_data["subject"]["id_sec"],"branch":branch}
+        headers={"Authorization":conf_data["jwt"]}
+        response=common.sendingPost(url,message,headers)
+        if response["status_code"] != 200:
+            print(json.dumps(response["content"],indent=2))
+            return
+        conf_data[branch]= response["content"]["api_key"]
+        with open(vars.fileConf, 'w') as outfile:
+            json.dump(conf_data, outfile,indent=2)
+        print("Init OK!")
 
 @htsp.command()
 @click.argument('key_name')

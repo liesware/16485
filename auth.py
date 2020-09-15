@@ -38,7 +38,52 @@ def login():
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))
             return
-        print(json.dumps(response["content"],indent=2))
         conf_data["jwt"] = response["content"]["jwt"]
         with open(vars.fileConf, 'w') as outfile:
             json.dump(conf_data, outfile,indent=2)
+        print("Login OK")
+
+
+@auth.command()
+def password_upd():
+    """
+    3vidence Signup
+    """
+    url=vars.eHost+'/auth/password'
+    with open(vars.fileConf) as json_file:
+        conf_data = json.load(json_file)
+        headers={"Authorization":conf_data["jwt"]}
+        message={"":""}
+        response=common.sendingPut(url,message,headers)
+        if response["status_code"] != 200:
+            print(json.dumps(response["content"],indent=2))
+            return
+        conf_data["password"]= response["content"]["password"]
+        with open(vars.fileConf, 'w') as outfile:
+            json.dump(conf_data, outfile,indent=2)
+        print("Password updated")
+
+
+@auth.command()
+@click.argument('email')
+def signup(email):
+    """
+    3vidence Signup
+    """
+    url=vars.eHost+'/auth/signup'
+    message = {"email": email}
+    response=common.sendingPost(url,message)
+    if response["status_code"] != 200:
+        print(json.dumps(response["content"],indent=2))
+        return
+    print(json.dumps(response["content"],indent=2))
+    conf = response["content"]
+    code = input("Your verification code: ")
+    url=vars.eHost+'/auth/verification/'+code
+    response=common.sendingGet(url)
+    if response["status_code"] != 200:
+        print(json.dumps(response["content"],indent=2))
+        return
+    print(json.dumps(response["content"],indent=2))
+    with open(vars.fileConf, 'w') as outfile:
+        json.dump(conf, outfile,indent=2)
