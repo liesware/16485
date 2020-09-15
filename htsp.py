@@ -24,6 +24,12 @@ def apikey_upd(key_name):
     url=vars.eHost+'/htsp/apikey'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not key_name in conf_data):
+            print("Bad key name")
+            return
+        if (not "jwt" in conf_data):
+            print("You need to login first")
+            return
         message = {"api_key": conf_data[key_name]}
         headers={"Authorization":conf_data["jwt"]}
         response=common.sendingPut(url,message,headers)
@@ -59,6 +65,9 @@ def hjws_del(key_name,id_hjws):
     url=vars.eHost+'/htsp/hjws'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not key_name in conf_data):
+            print("Bad key name")
+            return
         message = {"api_key": conf_data[key_name], "id_hjws": id_hjws}
         response=common.sendingDel(url,message)
         print(json.dumps(response["content"],indent=2))
@@ -66,7 +75,7 @@ def hjws_del(key_name,id_hjws):
 @htsp.command()
 @click.argument('file_sign', type=click.File('r'))
 @click.argument('key_name')
-@click.option('-h','--hash', default="sha256", help='Hash algorithm')
+@click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512","whirlpool"]')
 @click.option('-d','--desc', default="0545 cli", help='Description')
 @click.option('-c','--cloud', default=True, help='Store signature on cloud [True/False]')
 def htsq(file_sign,key_name,hash,desc,cloud):
@@ -79,6 +88,9 @@ def htsq(file_sign,key_name,hash,desc,cloud):
         return
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not key_name in conf_data):
+            print("Bad key name")
+            return
         message = {"api_key": conf_data[key_name], "algorithm": hash,
             "hash":file_hash, "cloud": cloud,"desc": desc}
         response=common.sendingPost(url,message)
@@ -91,7 +103,7 @@ def htsq(file_sign,key_name,hash,desc,cloud):
 
 @htsp.command()
 @click.argument('file_sign', type=click.File('r'))
-@click.option('-h','--hash', default="sha256", help='Hash algorithm')
+@click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512","whirlpool"]')
 def htsq_anon(file_sign,hash):
     """Sign a file anonymously
     """
@@ -157,6 +169,9 @@ def info():
     url=vars.eHost+'/htsp/info'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not "jwt" in conf_data):
+            print("You need to login first")
+            return
         headers={"Authorization":conf_data["jwt"]}
         response=common.sendingGet(url,headers)
         print(json.dumps(response["content"],indent=2))
@@ -202,6 +217,9 @@ def info_apikey(key_name):
     url=vars.eHost+'/htsp/info/apikey'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not key_name in conf_data):
+            print("Bad key name")
+            return
         message = {"api_key": conf_data[key_name]}
         response=common.sendingPost(url,message)
         print(json.dumps(response["content"],indent=2))
@@ -213,6 +231,9 @@ def pubkey(key_name):
     """
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not key_name in conf_data):
+            print("Bad key name")
+            return
         url=vars.eHost+'/htsp/pubkey/'+conf_data[key_name].split('.')[0]
         response=common.sendingGet(url)
         print(json.dumps(response["content"],indent=2))

@@ -33,6 +33,9 @@ def login():
     url=vars.eHost+'/auth/login'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not "email" in conf_data) or (not "password" in conf_data):
+            print("Bad email/password")
+            return
         data = {"email": conf_data["email"],"password":conf_data["password"]}
         response=common.sendingPost(url,data)
         if response["status_code"] != 200:
@@ -52,6 +55,9 @@ def password_upd():
     url=vars.eHost+'/auth/password'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not "jwt" in conf_data):
+            print("Bad key name")
+            return
         headers={"Authorization":conf_data["jwt"]}
         message={"":""}
         response=common.sendingPut(url,message,headers)
