@@ -48,33 +48,35 @@ def health():
     print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
-@click.argument('id_hjws')
+@click.argument('id_hjws',nargs=-1)
 def hjws(id_hjws):
     """Get a cloud id_hjws
     """
-    url=vars.eHost+'/htsp/hjws/'+id_hjws
-    response=common.sendingGet(url)
-    print(json.dumps(response["content"],indent=2))
+    for i in id_hjws:
+        url=vars.eHost+'/htsp/hjws/'+i
+        response=common.sendingGet(url)
+        print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 @click.argument('key_name')
-@click.argument('id_hjws')
+@click.argument('id_hjws',nargs=-1)
 def hjws_del(key_name,id_hjws):
     """Delete a cloud id_hjws
     """
     url=vars.eHost+'/htsp/hjws'
-    with open(vars.fileConf) as json_file:
-        conf_data = json.load(json_file)
-        if (not key_name in conf_data):
-            print("Bad key name")
-            return
-        message = {"api_key": conf_data[key_name], "id_hjws": id_hjws}
-        response=common.sendingDel(url,message)
-        print(json.dumps(response["content"],indent=2))
+    for i in id_hjws:
+        with open(vars.fileConf) as json_file:
+            conf_data = json.load(json_file)
+            if (not key_name in conf_data):
+                print("Bad key name")
+                return
+            message = {"api_key": conf_data[key_name], "id_hjws": i}
+            response=common.sendingDel(url,message)
+            print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
-@click.argument('file_sign', type=click.File('r'))
 @click.argument('key_name')
+@click.argument('file_sign', type=click.File('r'),nargs=-1)
 @click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512","whirlpool"]')
 @click.option('-d','--desc', default="0545 cli", help='Description')
 @click.option('-c','--cloud', default=True, help='Store signature on cloud [True/False]')
@@ -82,65 +84,68 @@ def htsq(file_sign,key_name,hash,desc,cloud):
     """Sign a file
     """
     url=vars.eHost+'/htsp/htsq'
-    file_hash = common.hashCreate(hash,file_sign)
-    if(file_hash==0):
-        print("Bad algorithm")
-        return
-    with open(vars.fileConf) as json_file:
-        conf_data = json.load(json_file)
-        if (not key_name in conf_data):
-            print("Bad key name")
+    for i in file_sign:
+        file_hash = common.hashCreate(hash,i)
+        if(file_hash==0):
+            print("Bad algorithm")
             return
-        message = {"api_key": conf_data[key_name], "algorithm": hash,
-            "hash":file_hash, "cloud": cloud,"desc": desc}
-        response=common.sendingPost(url,message)
-        if response["status_code"] != 200:
+        with open(vars.fileConf) as json_file:
+            conf_data = json.load(json_file)
+            if (not key_name in conf_data):
+                print("Bad key name")
+                return
+            message = {"api_key": conf_data[key_name], "algorithm": hash,
+                "hash":file_hash, "cloud": cloud,"desc": desc}
+            response=common.sendingPost(url,message)
+            if response["status_code"] != 200:
+                print(json.dumps(response["content"],indent=2))
+                return
             print(json.dumps(response["content"],indent=2))
-            return
-        print(json.dumps(response["content"],indent=2))
-        with open(file_sign.name+'.hjws', 'w') as outfile:
-            json.dump(response["content"], outfile,indent=2)
+            with open(i.name+'.hjws', 'w') as outfile:
+                json.dump(response["content"], outfile,indent=2)
 
 @htsp.command()
-@click.argument('file_sign', type=click.File('r'))
+@click.argument('file_sign', type=click.File('r'),nargs=-1)
 @click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512","whirlpool"]')
 def htsq_anon(file_sign,hash):
     """Sign a file anonymously
     """
     url=vars.eHost+'/htsp/open/htsq'
-    file_hash = common.hashCreate(hash,file_sign)
-    if(file_hash==0):
-        print("Bad algorithm")
-        return
-    message = {"algorithm": hash,"hash":file_hash}
-    response=common.sendingPost(url,message)
-    if response["status_code"] != 200:
+    for i in file_sign:
+        file_hash = common.hashCreate(hash,i)
+        if(file_hash==0):
+            print("Bad algorithm")
+            return
+        message = {"algorithm": hash,"hash":file_hash}
+        response=common.sendingPost(url,message)
+        if response["status_code"] != 200:
+            print(json.dumps(response["content"],indent=2))
+            return
         print(json.dumps(response["content"],indent=2))
-        return
-    print(json.dumps(response["content"],indent=2))
-    with open(file_sign.name+'.hjws', 'w') as outfile:
-        json.dump(response["content"], outfile,indent=2)
+        with open(i.name+'.hjws', 'w') as outfile:
+            json.dump(response["content"], outfile,indent=2)
 
 @htsp.command()
-@click.argument('file_sign', type=click.File('r'))
+@click.argument('file_sign', type=click.File('r'),nargs=-1)
 def htsr(file_sign):
     """Verify a file with a hjws file
     """
     url=vars.eHost+'/htsp/htsr'
-    with open(file_sign.name+'.hjws') as json_file:
-        message = json.load(json_file)
-        response=common.sendingPost(url, message)
-        if response["status_code"] != 200:
-            print(json.dumps(response["content"],indent=2))
-            return
-        file_hash = common.hashCreate(response["content"]["alg"],file_sign)
-        if(file_hash==0):
-            print("Bad algorithm")
-            return
-        if file_hash != response["content"]["hash"]:
-            print("Bad file sign")
-        else:
-            print(json.dumps(response["content"],indent=2))
+    for i in file_sign:
+        with open(i.name+'.hjws') as json_file:
+            message = json.load(json_file)
+            response=common.sendingPost(url, message)
+            if response["status_code"] != 200:
+                print(json.dumps(response["content"],indent=2))
+                return
+            file_hash = common.hashCreate(response["content"]["alg"],i)
+            if(file_hash==0):
+                print("Bad algorithm")
+                return
+            if file_hash != response["content"]["hash"]:
+                print("Bad file sign")
+            else:
+                print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 @click.argument('file_sign', type=click.File('r'))
