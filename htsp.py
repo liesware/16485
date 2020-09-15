@@ -4,17 +4,11 @@ import hashlib
 
 import vars
 import common
-import htsp_curls
 
 @click.group()
 def htsp():
     pass
 
-@htsp.command()
-def curls():
-    """API htsp curls
-    """
-    htsp_curls.api()
 
 @htsp.command()
 @click.argument('key_name')

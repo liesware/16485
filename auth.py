@@ -4,17 +4,10 @@ import hashlib
 
 import vars
 import common
-import auth_curls
 
 @click.group()
 def auth():
     pass
-
-@auth.command()
-def curls():
-    """Auth curls
-    """
-    auth_curls.api()
 
 
 @auth.command()
