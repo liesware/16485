@@ -52,14 +52,14 @@ def post(file_sign,key_name,hash,desc):
         print("Snippet OK!: ", i.name)
         with open(i.name+'.snpt', 'w') as outfile:
             json.dump(response["content"], outfile,indent=2)
-        url=vars.eHost+'/snippets/qr'
-        message = {"id_data": response["content"]["id_data"], "type": "api"}
-        response=requests.post(url,message)
-        if response.status_code != 200:
-            print(response)
-            return
-        with open(i.name+'.png', 'wb') as outfile:
-            outfile.write(response.content)
+        # url=vars.eHost+'/snippets/qr'
+        # message = {"id_data": response["content"]["id_data"], "type": "api"}
+        # response=requests.post(url,message)
+        # if response.status_code != 200:
+        #     print(response)
+        #     return
+        # with open(i.name+'.png', 'wb') as outfile:
+        #     outfile.write(response.content)
 
 
 @snippets.command()
@@ -79,25 +79,27 @@ def info_key(key_name):
     response=common.sendingPost(url,message)
     print(json.dumps(response["content"],indent=2))
 
+
 @snippets.command()
 @click.argument('file_sign', type=click.File('r'),nargs=-1)
 def get(file_sign):
     """Get a snippet
     """
     for i in file_sign:
-        message = common.parse(i.name+'.snpt')
+        message = common.parse(i.name)
         if not message:
             print("Bad json file: ", i.name)
             return
-        if ("id_data" in message):
-            url=vars.eHost+'/snippets/'+message["id_data"]
-            response=common.sendingGet(url)
-            if response["status_code"] != 200:
-                print(json.dumps(response["content"],indent=2))
-                return
-            print(json.dumps(response["content"],indent=2))
-        else:
+        if (not"id_data" in message):
             print("Bad snpt file: ", i.name)
+            return
+        url=vars.eHost+'/snippets/'+message["id_data"]
+        response=common.sendingGet(url)
+        if response["status_code"] != 200:
+            print(json.dumps(response["content"],indent=2))
+            return
+        print(json.dumps(response["content"],indent=2))
+
 
 @snippets.command()
 @click.argument('key_name')
@@ -114,22 +116,22 @@ def delete(key_name,file_sign):
         print("Bad key name")
         return
     for i in file_sign:
-        message = common.parse(i.name+'.snpt')
+        message = common.parse(i.name)
         if not message:
             print("Bad json file: ", i.name)
             return
-        if ("id_data" in message):
-            url=vars.eHost+'/snippets'
-            message["api_key"] = conf_data[key_name]
-            response=common.sendingDel(url, message)
-            if response["status_code"] != 200:
-                print(json.dumps(response["content"],indent=2))
-                return
-            print(json.dumps(response["content"],indent=2))
-            os.remove(i.name+'.snpt')
-            os.remove(i.name+'.png')
-        else:
+        if (not"id_data" in message):
             print("Bad snpt file: ", i.name)
+            return
+        url=vars.eHost+'/snippets'
+        message["api_key"] = conf_data[key_name]
+        response=common.sendingDel(url, message)
+        if response["status_code"] != 200:
+            print(json.dumps(response["content"],indent=2))
+            return
+        print(json.dumps(response["content"],indent=2))
+        os.remove(i.name)
+
 
 @snippets.command()
 @click.argument('key_name')

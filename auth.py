@@ -43,9 +43,9 @@ def login():
 
 
 @auth.command()
-def password_upd():
+def update():
     """
-    3vidence Signup
+    3vidence password update
     """
     url=vars.eHost+'/auth/password'
     conf_data = common.parse(vars.fileConf)
