@@ -182,13 +182,19 @@ def init():
     url=vars.eHost+'/htsp/subject'
     with open(vars.fileConf) as json_file:
         conf_data = json.load(json_file)
+        if (not "email" in conf_data):
+            print("Bad 3vidence.json config file")
+            return
+        if (not "jwt" in conf_data):
+            print("You need to login first")
+            return
         message = {"subject": conf_data["email"],"type":"email"}
         headers={"Authorization":conf_data["jwt"]}
         response=common.sendingPost(url,message,headers)
         if response["status_code"] != 200:
             print("Subject already exists")
             return
-        conf_data["subject"]= response["content"]
+        conf_data[conf_data["email"]]= response["content"]
         code = input("Your email verification code: ")
         url=vars.eHost+'/htsp/verification/'+code
         response=common.sendingGet(url,headers)
@@ -197,7 +203,7 @@ def init():
             return
         url=vars.eHost+'/htsp/branch'
         branch = input("Your branch name: ")
-        message = {"id_sec": conf_data["subject"]["id_sec"],"branch":branch}
+        message = {"id_sec": conf_data[conf_data["email"]]["id_sec"],"branch":branch}
         headers={"Authorization":conf_data["jwt"]}
         response=common.sendingPost(url,message,headers)
         if response["status_code"] != 200:
