@@ -134,25 +134,6 @@ def htsr(file_sign):
         else:
             print(json.dumps(response["content"],indent=2))
 
-# @htsp.command()
-# @click.argument('file_sign', type=click.File('r'))
-# @click.argument('id_hjws')
-# def htsr_cloud(file_sign,id_hjws):
-#     """Verify a file with a cloud id_hjws
-#     """
-#     url=vars.eHost+'/htsp/hjws/'+id_hjws
-#     response=common.sendingGet(url)
-#     if response["status_code"] != 200:
-#         print(json.dumps(response["content"],indent=2))
-#         return
-#     file_hash = common.hashCreate(response["content"]["alg"],file_sign)
-#     if(file_hash==0):
-#         print("Bad algorithm")
-#         return
-#     if file_hash != response["content"]["hash"]:
-#         print("Bad file sign")
-#     else:
-#         print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 def info():
