@@ -54,3 +54,12 @@ def hashCreate(alg, file):
 			break
 		file_hash.update(fb.encode('utf-8'))
 	return file_hash.hexdigest()
+
+def parse(file):
+	with open(file) as json_file:
+		try:
+			# json_data = file.read().encode('utf-8')
+			return json.load(json_file)
+		except ValueError as e:
+			print('invalid json: %s' % e)
+			return 0
