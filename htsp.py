@@ -32,7 +32,7 @@ def hjws(id_hjws):
 @click.argument('key_name')
 @click.argument('id_hjws',nargs=-1)
 def hjws_del(key_name,id_hjws):
-    """Delete a cloud id_hjws
+    """Delete a cloud hjws
     """
     url=vars.eHost+'/htsp/hjws'
     conf_data = common.parse(vars.fileConf)
@@ -103,7 +103,7 @@ def htsq_anon(file_sign,hash):
 @htsp.command()
 @click.argument('file_sign', type=click.File('r'),nargs=-1)
 def htsr(file_sign):
-    """Verify a file with a hjws file
+    """Verify a file
     """
     for i in file_sign:
         message = common.parse(i.name+'.hjws')
@@ -134,25 +134,25 @@ def htsr(file_sign):
         else:
             print(json.dumps(response["content"],indent=2))
 
-@htsp.command()
-@click.argument('file_sign', type=click.File('r'))
-@click.argument('id_hjws')
-def htsr_cloud(file_sign,id_hjws):
-    """Verify a file with a cloud id_hjws
-    """
-    url=vars.eHost+'/htsp/hjws/'+id_hjws
-    response=common.sendingGet(url)
-    if response["status_code"] != 200:
-        print(json.dumps(response["content"],indent=2))
-        return
-    file_hash = common.hashCreate(response["content"]["alg"],file_sign)
-    if(file_hash==0):
-        print("Bad algorithm")
-        return
-    if file_hash != response["content"]["hash"]:
-        print("Bad file sign")
-    else:
-        print(json.dumps(response["content"],indent=2))
+# @htsp.command()
+# @click.argument('file_sign', type=click.File('r'))
+# @click.argument('id_hjws')
+# def htsr_cloud(file_sign,id_hjws):
+#     """Verify a file with a cloud id_hjws
+#     """
+#     url=vars.eHost+'/htsp/hjws/'+id_hjws
+#     response=common.sendingGet(url)
+#     if response["status_code"] != 200:
+#         print(json.dumps(response["content"],indent=2))
+#         return
+#     file_hash = common.hashCreate(response["content"]["alg"],file_sign)
+#     if(file_hash==0):
+#         print("Bad algorithm")
+#         return
+#     if file_hash != response["content"]["hash"]:
+#         print("Bad file sign")
+#     else:
+#         print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 def info():
