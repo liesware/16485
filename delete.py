@@ -27,6 +27,7 @@ def key(key_name):
         return
     message = {"kid": conf_data[key_name].split('.')[0]}
     headers={"Authorization":conf_data["jwt"]}
+    click.confirm('Do you want to continue?', abort=True)
     response=common.sendingDel(url,message,headers)
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
@@ -52,6 +53,7 @@ def subject(subject):
         return
     message = {"id_sec": conf_data[subject]["id_sec"]}
     headers={"Authorization":conf_data["jwt"]}
+    click.confirm('Do you want to continue?', abort=True)
     response=common.sendingDel(url,message,headers)
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
@@ -72,6 +74,7 @@ def account():
         return
     message = {}
     headers={"Authorization":conf_data["jwt"]}
+    click.confirm('Do you want to continue?', abort=True)
     response=common.sendingDel(url,message,headers)
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
