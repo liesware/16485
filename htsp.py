@@ -33,17 +33,17 @@ def branch(email):
     if (not "jwt" in conf_data):
         print("You need to login first")
         return
-    if (not email in conf_data):
+    if (not email in conf_data["subject"]):
         print("Bad subject")
         return
     branch = input("Your branch name: ")
-    message = {"id_sec": conf_data[email]["id_sec"],"branch":branch}
+    message = {"id_sec": conf_data["subject"][email],"branch":branch}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
         return
-    conf_data[branch]= response["content"]["api_key"]
+    conf_data["branch"][branch]= response["content"]["api_key"]
     with open(vars.fileConf, 'w') as outfile:
         json.dump(conf_data, outfile,indent=2)
     print("Branch OK!")
@@ -60,7 +60,7 @@ def delete(key_name,file_sign):
     if not conf_data:
         print("Bad config file")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
     for i in file_sign:
@@ -71,7 +71,7 @@ def delete(key_name,file_sign):
         if (not "id_hjws" in data):
             print("Bad id_hjws")
             return
-        message = {"api_key": conf_data[key_name], "id_hjws": data["id_hjws"]}
+        message = {"api_key": conf_data["branch"][key_name], "id_hjws": data["id_hjws"]}
         response=common.sendingDel(url,message)
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))
@@ -125,12 +125,12 @@ def info_key(key_name):
     if not conf_data:
         print("Bad config file")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
-    message = {"api_key": conf_data[key_name]}
+    message = {"api_key": conf_data["branch"][key_name]}
     response1=common.sendingPost(url,message)
-    url=vars.eHost+'/htsp/pubkey/'+conf_data[key_name].split('.')[0]
+    url=vars.eHost+'/htsp/pubkey/'+conf_data["branch"][key_name].split('.')[0]
     response=common.sendingGet(url)
     response1["content"]["pubkey"] = response["content"]
     print(json.dumps(response1["content"],indent=2))
@@ -157,7 +157,7 @@ def init():
     if response["status_code"] != 200:
         print("Subject already exists")
         return
-    conf_data[conf_data["email"]]= response["content"]
+    conf_data["subject"]= {conf_data["email"]:response["content"]["id_sec"]}
     code = input("Your email verification code: ")
     url=vars.eHost+'/htsp/verification/'+code
     response=common.sendingGet(url,headers)
@@ -166,13 +166,13 @@ def init():
         return
     url=vars.eHost+'/htsp/branch'
     branch = input("Your branch name: ")
-    message = {"id_sec": conf_data[conf_data["email"]]["id_sec"],"branch":branch}
+    message = {"id_sec": conf_data["subject"][conf_data["email"]],"branch":branch}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
         return
-    conf_data[branch]= response["content"]["api_key"]
+    conf_data["branch"]= {branch:response["content"]["api_key"]}
     with open(vars.fileConf, 'w') as outfile:
         json.dump(conf_data, outfile,indent=2)
     print("Init OK!")
@@ -192,7 +192,7 @@ def sign(file_sign,key_name,hash,desc,cloud):
     if not conf_data:
         print("Bad config file")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
     for i in file_sign:
@@ -200,7 +200,7 @@ def sign(file_sign,key_name,hash,desc,cloud):
         if(file_hash==0):
             print("Bad algorithm")
             return
-        message = {"api_key": conf_data[key_name], "algorithm": hash,
+        message = {"api_key": conf_data["branch"][key_name], "algorithm": hash,
             "hash":file_hash, "cloud": cloud,"desc": desc}
         response=common.sendingPost(url,message)
         if response["status_code"] != 200:
@@ -252,7 +252,7 @@ def subject():
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
         return
-    conf_data[code]= response["content"]
+    conf_data["subject"][code]= response["content"]["id_sec"]
     code = input("Your email verification code: ")
     url=vars.eHost+'/htsp/verification/'+code
     response=common.sendingGet(url,headers)
@@ -274,16 +274,16 @@ def update(key_name):
     if not conf_data:
         print("Bad config file")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
     if (not "jwt" in conf_data):
         print("You need to login first")
         return
-    message = {"api_key": conf_data[key_name]}
+    message = {"api_key": conf_data["branch"][key_name]}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPut(url,message,headers)
-    conf_data[key_name]= response["content"]["api_key"]
+    conf_data["branch"][key_name]= response["content"]["api_key"]
     with open(vars.fileConf, 'w') as outfile:
         json.dump(conf_data, outfile,indent=2)
     print("API updated OK!")

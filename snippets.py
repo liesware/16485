@@ -36,7 +36,7 @@ def post(file_sign,key_name,hash,desc):
     if not conf_data:
         print("Bad config file")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
     for i in file_sign:
@@ -44,7 +44,7 @@ def post(file_sign,key_name,hash,desc):
         if not data:
             print("Bad json file: ", i.name)
             return
-        message = {"api_key": conf_data[key_name],"data": data,"algorithm": hash,"desc": desc }
+        message = {"api_key": conf_data["branch"][key_name],"data": data,"algorithm": hash,"desc": desc }
         response=common.sendingPost(url,message)
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))
@@ -72,10 +72,10 @@ def info_key(key_name):
     if not conf_data:
         print("Bad config file")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
-    message = {"api_key": conf_data[key_name]}
+    message = {"api_key": conf_data["branch"][key_name]}
     response=common.sendingPost(url,message)
     print(json.dumps(response["content"],indent=2))
 
@@ -112,7 +112,7 @@ def delete(key_name,file_sign):
     if not conf_data:
         print("Bad config file")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
     for i in file_sign:
@@ -124,7 +124,7 @@ def delete(key_name,file_sign):
             print("Bad snpt file: ", i.name)
             return
         url=vars.eHost+'/snippets'
-        message["api_key"] = conf_data[key_name]
+        message["api_key"] = conf_data["branch"][key_name]
         response=common.sendingDel(url, message)
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))
@@ -150,7 +150,7 @@ def update(file_sign,key_name,hash,desc):
     if not conf_data:
         print("Bad config file")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
     for i in file_sign:
@@ -165,7 +165,7 @@ def update(file_sign,key_name,hash,desc):
         if (not "id_data" in data2):
             print("Bad id_data")
             return
-        message = {"api_key": conf_data[key_name], "id_data": data2["id_data"],"data": data,"algorithm": hash,"desc": desc }
+        message = {"api_key": conf_data["branch"][key_name], "id_data": data2["id_data"],"data": data,"algorithm": hash,"desc": desc }
         response=common.sendingPut(url,message)
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))

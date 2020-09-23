@@ -4,6 +4,7 @@ import hashlib
 
 import vars
 import common
+import os
 
 @click.group()
 def delete():
@@ -11,7 +12,7 @@ def delete():
 
 @delete.command()
 @click.argument('key_name')
-def key(key_name):
+def branch(key_name):
     """Delete a key
     """
     url=vars.eHost+'/htsp/branch'
@@ -22,10 +23,10 @@ def key(key_name):
     if (not "jwt" in conf_data):
         print("You need to login first")
         return
-    if (not key_name in conf_data):
+    if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
-    message = {"kid": conf_data[key_name].split('.')[0]}
+    message = {"kid": conf_data["branch"][key_name].split('.')[0]}
     headers={"Authorization":conf_data["jwt"]}
     click.confirm('Do you want to continue?', abort=True)
     response=common.sendingDel(url,message,headers)
@@ -33,6 +34,9 @@ def key(key_name):
         print(json.dumps(response["content"],indent=2))
         return
     print(json.dumps(response["content"],indent=2))
+    del conf_data["branch"][key_name]
+    with open(vars.fileConf, 'w') as outfile:
+        json.dump(conf_data, outfile,indent=2)
 
 
 @delete.command()
@@ -48,10 +52,10 @@ def subject(subject):
     if (not "jwt" in conf_data):
         print("You need to login first")
         return
-    if (not subject in conf_data):
+    if (not subject in conf_data["subject"]):
         print("Bad subject name")
         return
-    message = {"id_sec": conf_data[subject]["id_sec"]}
+    message = {"id_sec": conf_data["subject"][subject]}
     headers={"Authorization":conf_data["jwt"]}
     click.confirm('Do you want to continue?', abort=True)
     response=common.sendingDel(url,message,headers)
@@ -59,6 +63,9 @@ def subject(subject):
         print(json.dumps(response["content"],indent=2))
         return
     print(json.dumps(response["content"],indent=2))
+    del conf_data["subject"][subject]
+    with open(vars.fileConf, 'w') as outfile:
+        json.dump(conf_data, outfile,indent=2)
 
 @delete.command()
 def account():
@@ -80,3 +87,4 @@ def account():
         print(json.dumps(response["content"],indent=2))
         return
     print(json.dumps(response["content"],indent=2))
+    os.remove(vars.fileConf)
