@@ -93,7 +93,7 @@ def get(file_sign):
         if (not"id_data" in message):
             print("Bad snpt file: ", i.name)
             return
-        url=vars.eHost+'/snippets/'+message["id_data"]
+        url=vars.eHost+'/snippets/data/'+message["id_data"]
         response=common.sendingGet(url)
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))
