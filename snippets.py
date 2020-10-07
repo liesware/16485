@@ -67,7 +67,7 @@ def post(file_sign,key_name,hash,desc):
 def info_key(key_name):
     """Info API key
     """
-    url=vars.eHost+'/snippets/id'
+    url=vars.eHost+'/snippets/info'
     conf_data = common.parse(vars.fileConf)
     if not conf_data:
         print("Bad config file")
