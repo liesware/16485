@@ -52,7 +52,7 @@ def hashCreate(alg, file):
 		fb = file.read(vars.BLOCK_SIZE)
 		if not fb:
 			break
-		file_hash.update(fb.encode('utf-8'))
+		file_hash.update(fb)
 	return file_hash.hexdigest()
 
 def parse(file):

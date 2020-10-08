@@ -180,7 +180,7 @@ def init():
 
 @htsp.command()
 @click.argument('key_name')
-@click.argument('file_sign', type=click.File('r'),nargs=-1)
+@click.argument('file_sign', type=click.File('rb'),nargs=-1)
 @click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512","whirlpool"]')
 @click.option('-d','--desc', default="0545 cli", help='Description')
 @click.option('-c','--cloud', default=True, help='Store signature on cloud [True/False]')
@@ -212,7 +212,7 @@ def sign(file_sign,key_name,hash,desc,cloud):
 
 
 @htsp.command()
-@click.argument('file_sign', type=click.File('r'),nargs=-1)
+@click.argument('file_sign', type=click.File('rb'),nargs=-1)
 @click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512","whirlpool"]')
 def sign_anon(file_sign,hash):
     """Sign a file anonymously
@@ -290,7 +290,7 @@ def update(key_name):
 
 
 @htsp.command()
-@click.argument('file_sign', type=click.File('r'),nargs=-1)
+@click.argument('file_sign', type=click.File('rb'),nargs=-1)
 def verify(file_sign):
     """Verify a file
     """
