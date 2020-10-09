@@ -43,6 +43,12 @@ def branch(email,suite):
     if (not isinstance(conf_data["branch"],dict)):
         print("Bad branches")
         return
+    if (not email in conf_data):
+        print("You need to verify your subject")
+        return
+    if (not isinstance(conf_data[email],list)):
+        print("You need to init first")
+        return
     branch = input("Your branch name: ")
     if (branch in conf_data["branch"]):
         print("Branch already exists")
@@ -54,6 +60,7 @@ def branch(email,suite):
         print(json.dumps(response["content"],indent=2))
         return
     conf_data["branch"][branch]= response["content"]["api_key"]
+    conf_data[email].append(branch)
     with open(vars.fileConf, 'w') as outfile:
         json.dump(conf_data, outfile,indent=2)
     print("Branch OK!")
@@ -161,8 +168,8 @@ def init():
     if (not "jwt" in conf_data):
         print("You need to login first")
         return
-    code = conf_data["email"]
-    message = {"subject": code, "type": "email"}
+    email = conf_data["email"]
+    message = {"subject": email, "type": "email"}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
     if response["status_code"] == 200:
@@ -181,13 +188,27 @@ def init():
         return
     url=vars.eHost+'/htsp/branch'
     branch = input("Your branch name: ")
+    if(branch in conf_data["branch"]):
+        print("This branch already exists")
+        return
     message = {"id_sec": conf_data["subject"][conf_data["email"]],"branch":branch}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
     if response["status_code"] != 200:
         print(json.dumps(response["content"],indent=2))
         return
-    conf_data["branch"]= {branch:response["content"]["api_key"]}
+    if (not "branch" in conf_data):
+        conf_data["branch"]= {branch:response["content"]["api_key"]}
+    elif (isinstance(conf_data["branch"],dict)):
+        conf_data["branch"][branch]= response["content"]["api_key"]
+    else:
+        conf_data["branch"]= {branch:response["content"]["api_key"]}
+    if(not email in conf_data):
+        conf_data[email]=[branch]
+    elif (isinstance(conf_data[email],list)):
+        conf_data[email].append(branch)
+    else:
+        conf_data[email]=[branch]
     with open(vars.fileConf, 'w') as outfile:
         json.dump(conf_data, outfile,indent=2)
     print("Init OK!")
@@ -271,6 +292,8 @@ def subject(email):
     message = {"subject": code, "type": "email"}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
+    if (not email in conf_data):
+            conf_data[email]=[]
     if response["status_code"] == 200:
         conf_data["subject"][email] = response["content"]["id_sec"]
         with open(vars.fileConf, 'w') as outfile:
