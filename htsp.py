@@ -21,8 +21,9 @@ def health():
 
 
 @htsp.command()
+@click.option('-s','--suite', default="ed25519+rsa", help='Suite algorithm ["ed25519+dilithium2","ed25519+rsa"]')
 @click.argument('email')
-def branch(email):
+def branch(email,suite):
     """Create a branch
     """
     url=vars.eHost+'/htsp/branch'
@@ -36,8 +37,17 @@ def branch(email):
     if (not email in conf_data["subject"]):
         print("Bad subject")
         return
+    if (not "branch" in conf_data):
+        print("You need to init first")
+        return
+    if (not isinstance(conf_data["branch"],dict)):
+        print("Bad branches")
+        return
     branch = input("Your branch name: ")
-    message = {"id_sec": conf_data["subject"][email],"branch":branch}
+    if (branch in conf_data["branch"]):
+        print("Branch already exists")
+        return
+    message = {"id_sec": conf_data["subject"][email],"branch":branch, "suite": suite}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
     if response["status_code"] != 200:
@@ -151,18 +161,23 @@ def init():
     if (not "jwt" in conf_data):
         print("You need to login first")
         return
-    message = {"subject": conf_data["email"],"type":"email"}
+    code = conf_data["email"]
+    message = {"subject": code, "type": "email"}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
-    if response["status_code"] != 200:
-        print("Subject already exists")
-        return
-    conf_data["subject"]= {conf_data["email"]:response["content"]["id_sec"]}
+    if response["status_code"] == 200:
+        conf_data["subject"]= {conf_data["email"]:response["content"]["id_sec"]}
+        with open(vars.fileConf, 'w') as outfile:
+            json.dump(conf_data, outfile,indent=2)
     code = input("Your email verification code: ")
     url=vars.eHost+'/htsp/verification/'+code
     response=common.sendingGet(url,headers)
+    print(json.dumps(response["content"],indent=2))
     if response["status_code"] != 200:
         print("Bad Verification code")
+        return
+    if (not conf_data["subject"][conf_data["email"]]):
+        print("Subject error")
         return
     url=vars.eHost+'/htsp/branch'
     branch = input("Your branch name: ")
@@ -234,7 +249,8 @@ def sign_anon(file_sign,hash):
 
 
 @htsp.command()
-def subject():
+@click.argument('email')
+def subject(email):
     """Create a subject
     """
     url=vars.eHost+'/htsp/subject'
@@ -245,24 +261,24 @@ def subject():
     if (not "jwt" in conf_data):
         print("You need to login first")
         return
-    code = input("Your email: ")
+    if (not "subject" in conf_data):
+        print("You need to init first")
+        return
+    if (not isinstance(conf_data["subject"],dict)):
+        print("Bad subject")
+        return
+    code = email
     message = {"subject": code, "type": "email"}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
-    if response["status_code"] != 200:
-        print(json.dumps(response["content"],indent=2))
-        return
-    conf_data["subject"][code]= response["content"]["id_sec"]
+    if response["status_code"] == 200:
+        conf_data["subject"][email] = response["content"]["id_sec"]
+        with open(vars.fileConf, 'w') as outfile:
+            json.dump(conf_data, outfile,indent=2)
     code = input("Your email verification code: ")
     url=vars.eHost+'/htsp/verification/'+code
     response=common.sendingGet(url,headers)
-    if response["status_code"] != 200:
-        print("Bad Verification code")
-        return
-    with open(vars.fileConf, 'w') as outfile:
-        json.dump(conf_data, outfile,indent=2)
-    print("Subject OK!")
-
+    print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 @click.argument('key_name')

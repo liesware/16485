@@ -76,17 +76,12 @@ def signup(email):
     url=vars.eHost+'/auth/signup'
     message = {"email": email}
     response=common.sendingPost(url,message)
-    if response["status_code"] != 200:
-        print(json.dumps(response["content"],indent=2))
-        return
     print(json.dumps(response["content"],indent=2))
-    conf = response["content"]
+    if response["status_code"] == 200:
+        conf = response["content"]
+        with open(vars.fileConf, 'w') as outfile:
+            json.dump(conf, outfile,indent=2)
     code = input("Your verification code: ")
     url=vars.eHost+'/auth/verification/'+code
     response=common.sendingGet(url)
-    if response["status_code"] != 200:
-        print(json.dumps(response["content"],indent=2))
-        return
     print(json.dumps(response["content"],indent=2))
-    with open(vars.fileConf, 'w') as outfile:
-        json.dump(conf, outfile,indent=2)

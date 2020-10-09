@@ -23,6 +23,12 @@ def branch(key_name):
     if (not "jwt" in conf_data):
         print("You need to login first")
         return
+    if (not "branch" in conf_data):
+        print("You need to init first")
+        return
+    if (not isinstance(conf_data["branch"],dict)):
+        print("Bad branches")
+        return
     if (not key_name in conf_data["branch"]):
         print("Bad key name")
         return
