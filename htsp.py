@@ -188,9 +188,10 @@ def init():
         return
     url=vars.eHost+'/htsp/branch'
     branch = input("Your branch name: ")
-    if(branch in conf_data["branch"]):
-        print("This branch already exists")
-        return
+    if ("branch" in conf_data):
+        if(branch in conf_data["branch"]):
+            print("This branch already exists")
+            return
     message = {"id_sec": conf_data["subject"][conf_data["email"]],"branch":branch}
     headers={"Authorization":conf_data["jwt"]}
     response=common.sendingPost(url,message,headers)
