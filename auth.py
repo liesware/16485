@@ -68,19 +68,10 @@ def update():
 
 
 @auth.command()
-@click.argument('email')
-def signup(email):
+def signup():
     """
     3vidence Signup
     """
-    url=vars.eHost+'/auth/signup'
-    message = {"email": email}
-    response=common.sendingPost(url,message)
-    print(json.dumps(response["content"],indent=2))
-    if response["status_code"] == 200:
-        conf = response["content"]
-        with open(vars.fileConf, 'w') as outfile:
-            json.dump(conf, outfile,indent=2)
     code = input("Your verification code: ")
     url=vars.eHost+'/auth/verification/'+code
     response=common.sendingGet(url)
