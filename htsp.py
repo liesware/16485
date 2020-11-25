@@ -295,10 +295,13 @@ def subject(email):
     response=common.sendingPost(url,message,headers)
     if (not email in conf_data):
             conf_data[email]=[]
-    if response["status_code"] == 200:
-        conf_data["subject"][email] = response["content"]["id_sec"]
-        with open(vars.fileConf, 'w') as outfile:
-            json.dump(conf_data, outfile,indent=2)
+    if response["status_code"] != 200:
+        print(json.dumps(response["content"],indent=2))
+        return
+    conf_data["subject"][email] = response["content"]["id_sec"]
+    with open(vars.fileConf, 'w') as outfile:
+        json.dump(conf_data, outfile,indent=2)
+    print(response["content"])
     code = input("Your email verification code: ")
     url=vars.eHost+'/htsp/verification/'+code
     response=common.sendingGet(url,headers)
