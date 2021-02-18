@@ -18,4 +18,8 @@ export LC_ALL=en_US.utf8
 export LANG=C.UTF-8
 ```
 
-modify fileConf in .local/3vidence_cli/vars.py, put it in a secure place.
+Modify fileConf in .local/3vidence_cli/vars.py, put it in a secure place.
+
+More Info:
+
+[3vidence.com](https://www.3vidence.com/)
