@@ -237,6 +237,10 @@ def sign(file_sign,key_name,hash,desc,cloud):
         if(file_hash==0):
             print("Bad algorithm")
             return
+        if (cloud == "True"):
+            cloud = True
+        else:
+            cloud = False
         message = {"api_key": conf_data["branch"][key_name], "algorithm": hash,
             "hash":file_hash, "cloud": cloud,"desc": desc}
         response=common.sendingPost(url,message)
