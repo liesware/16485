@@ -50,7 +50,7 @@ def post(file_sign,key_name,hash,desc):
             print(json.dumps(response["content"],indent=2))
             return
         print("Snippet OK!: ", i.name)
-        with open(i.name+'.snpt', 'w') as outfile:
+        with open(i.name+'_snpt.json', 'w') as outfile:
             json.dump(response["content"], outfile,indent=2)
         # url=vars.eHost+'/snippets/qr'
         # message = {"id_data": response["content"]["id_data"], "type": "api"}
@@ -86,6 +86,7 @@ def get(file_sign):
     """Get a snippet
     """
     for i in file_sign:
+        print('\n'+i.name)
         message = common.parse(i.name)
         if not message:
             print("Bad json file: ", i.name)
@@ -104,7 +105,7 @@ def get(file_sign):
 @snippets.command()
 @click.argument('key_name')
 @click.argument('file_sign', type=click.File('r'),nargs=-1)
-def delete(key_name,file_sign):
+def deletef(key_name,file_sign):
     """Delete a snippet
     """
     url=vars.eHost+'/snippets/id'
@@ -116,6 +117,7 @@ def delete(key_name,file_sign):
         print("Bad key name")
         return
     for i in file_sign:
+        print('\n'+i.name)
         message = common.parse(i.name)
         if not message:
             print("Bad json file: ", i.name)
@@ -126,12 +128,32 @@ def delete(key_name,file_sign):
         url=vars.eHost+'/snippets'
         message["api_key"] = conf_data["branch"][key_name]
         response=common.sendingDel(url, message)
+        print('\n'+i.name)
         if response["status_code"] != 200:
             print(json.dumps(response["content"],indent=2))
             return
         print(json.dumps(response["content"],indent=2))
         os.remove(i.name)
 
+@snippets.command()
+@click.argument('key_name')
+@click.argument('id_data',nargs=-1)
+def delete(key_name,id_data):
+    """Delete a cloud snippet with a id_data
+    """
+    url=vars.eHost+'/snippets'
+    conf_data = common.parse(vars.fileConf)
+    if not conf_data:
+        print("Bad config file")
+        return
+    if (not key_name in conf_data["branch"]):
+        print("Bad key name")
+        return
+    for i in id_data:
+        message = {"api_key": conf_data["branch"][key_name], "id_data": i}
+        response=common.sendingDel(url,message)
+        print('\n'+i)
+        print(json.dumps(response["content"],indent=2))
 
 @snippets.command()
 @click.argument('key_name')
@@ -158,7 +180,7 @@ def update(file_sign,key_name,hash,desc):
         if not data:
             print("Bad json file: ", i.name)
             return
-        data2 = common.parse(i.name+'.snpt')
+        data2 = common.parse(i.name+'_snpt.json')
         if not data2:
             print("Bad json file: ", i.name)
             return
@@ -171,5 +193,5 @@ def update(file_sign,key_name,hash,desc):
             print(json.dumps(response["content"],indent=2))
             return
         print("Snippet OK!: ", i.name)
-        with open(i.name+'.snpt', 'w') as outfile:
+        with open(i.name+'_snpt.json', 'w') as outfile:
             json.dump(response["content"], outfile,indent=2)

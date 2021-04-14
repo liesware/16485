@@ -69,8 +69,8 @@ def branch(email,suite):
 @htsp.command()
 @click.argument('key_name')
 @click.argument('file_sign', type=click.File('r'),nargs=-1)
-def delete(key_name,file_sign):
-    """Delete a cloud hjws
+def deletef(key_name,file_sign):
+    """Delete a cloud hjws with a _hjws.json file
     """
     url=vars.eHost+'/htsp/hjws'
     conf_data = common.parse(vars.fileConf)
@@ -91,11 +91,32 @@ def delete(key_name,file_sign):
         message = {"api_key": conf_data["branch"][key_name], "id_hjws": data["id_hjws"]}
         response=common.sendingDel(url,message)
         if response["status_code"] != 200:
+            print('\n'+i.name)
             print(json.dumps(response["content"],indent=2))
             return
+        print('\n'+i.name)
         print(json.dumps(response["content"],indent=2))
         os.remove(i.name)
 
+@htsp.command()
+@click.argument('key_name')
+@click.argument('id_hjws',nargs=-1)
+def delete(key_name,id_hjws):
+    """Delete a cloud hjws with a id_hjws
+    """
+    url=vars.eHost+'/htsp/hjws'
+    conf_data = common.parse(vars.fileConf)
+    if not conf_data:
+        print("Bad config file")
+        return
+    if (not key_name in conf_data["branch"]):
+        print("Bad key name")
+        return
+    for i in id_hjws:
+        message = {"api_key": conf_data["branch"][key_name], "id_hjws": i}
+        response=common.sendingDel(url,message)
+        print('\n'+i)
+        print(json.dumps(response["content"],indent=2))
 
 @htsp.command()
 @click.argument('file_sign', type=click.File('r'),nargs=-1)
@@ -112,6 +133,7 @@ def get(file_sign):
             return
         url=vars.eHost+'/htsp/hjws/'+data["id_hjws"]
         response=common.sendingGet(url)
+        print('\n'+i.name)
         print(json.dumps(response["content"],indent=2))
 
 
@@ -216,9 +238,26 @@ def init():
 
 
 @htsp.command()
+@click.argument('file_sign', type=click.File('rb'),nargs=-1)
+@click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512"]')
+def search(file_sign,hash):
+    """search a file by hash
+    """
+    url=vars.eHost+'/htsp/hash'
+    for i in file_sign:
+        file_hash = common.hashCreate(hash,i)
+        if(file_hash==0):
+            print("Bad algorithm")
+            return
+        message = {"hash": file_hash}
+        response=common.sendingPost(url,message)
+        print('\n'+i.name)
+        print(json.dumps(response["content"],indent=2))
+
+@htsp.command()
 @click.argument('key_name')
 @click.argument('file_sign', type=click.File('rb'),nargs=-1)
-@click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512","whirlpool"]')
+@click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512"]')
 @click.option('-d','--desc', default="0545 cli", help='Description')
 @click.option('-c','--cloud', default=True, help='Store signature on cloud [True/False]')
 def sign(file_sign,key_name,hash,desc,cloud):
@@ -237,24 +276,25 @@ def sign(file_sign,key_name,hash,desc,cloud):
         if(file_hash==0):
             print("Bad algorithm")
             return
-        if (cloud == "True"):
-            cloud = True
-        else:
+        if (cloud == "False"):
             cloud = False
+        else:
+            cloud = True
         message = {"api_key": conf_data["branch"][key_name], "algorithm": hash,
             "hash":file_hash, "cloud": cloud,"desc": desc}
         response=common.sendingPost(url,message)
         if response["status_code"] != 200:
+            print('\n'+i.name)
             print(json.dumps(response["content"],indent=2))
             return
         print("File signed OK!",i.name)
-        with open(i.name+'.hjws', 'w') as outfile:
+        with open(i.name+'_hjws.json', 'w') as outfile:
             json.dump(response["content"], outfile,indent=2)
 
 
 @htsp.command()
 @click.argument('file_sign', type=click.File('rb'),nargs=-1)
-@click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512","whirlpool"]')
+@click.option('-h','--hash', default="sha256", help='Hash algorithm ["sha224","sha256","sha384","sha512"]')
 def sign_anon(file_sign,hash):
     """Sign a file anonymously
     """
@@ -267,10 +307,11 @@ def sign_anon(file_sign,hash):
         message = {"algorithm": hash,"hash":file_hash}
         response=common.sendingPost(url,message)
         if response["status_code"] != 200:
+            print('\n'+i.name)
             print(json.dumps(response["content"],indent=2))
             return
         print("File signed OK!: ", i.name)
-        with open(i.name+'.hjws', 'w') as outfile:
+        with open(i.name+'_hjws.json', 'w') as outfile:
             json.dump(response["content"], outfile,indent=2)
 
 
@@ -342,7 +383,8 @@ def verify(file_sign):
     """Verify a file
     """
     for i in file_sign:
-        message = common.parse(i.name+'.hjws')
+        print('\n'+i.name)
+        message = common.parse(i.name+'_hjws.json')
         if not message:
             print("Bad json file: ", i.name)
             return
